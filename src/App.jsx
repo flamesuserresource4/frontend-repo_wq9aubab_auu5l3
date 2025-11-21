@@ -15,13 +15,17 @@ Goal: ${goal}
 Category: ${category}
 Tone: ${tone}
 Detail level: ${detail}
-Constraints:
+Quality requirements:
+- Subject line suggestion (optional but recommended).
+- Proper greeting based on tone and email type.
+- Short context/introduction, then a clear main request.
+- Supporting details only as needed (based on detail level).
+- Polite, professional closing; firm but respectful if escalation.
+- Acknowledge the recipient's role/constraints.
+- No grammar/spelling mistakes; easy to skim, short paragraphs; avoid slang unless Friendly.
 - Do NOT repeat the user's goal verbatim; infer and elaborate professionally.
-- Keep it clear, cohesive, and human-sounding.
-- Include a subject line.
-- Use an appropriate greeting and sign-off.
-- Where helpful, include placeholders for names, dates, IDs.
-- Write like an expert email writer with well-structured paragraphs.`
+- Include placeholders for names, dates, IDs when helpful.
+- Write like an expert email writer.`
   }
 
   // Mock generator with simple variation capability
@@ -136,7 +140,15 @@ function buildSubject(category, tone) {
 }
 
 function buildBody({ category, tone, detail }) {
-  const greeting = tone === 'Friendly' ? 'Hi there,' : tone === 'Semi-Formal' ? 'Hello,' : 'Dear Team,'
+  // Greeting based on tone + email type
+  const greeting = (() => {
+    if (category === 'Food / Delivery' || category === 'Banking / Finance') {
+      return 'Dear Customer Support Team,'
+    }
+    if (tone === 'Friendly') return 'Hi [Name],'
+    if (tone === 'Semi-Formal') return 'Hello [Name],'
+    return 'Dear [Name],'
+  })()
 
   const topicByCategory = {
     'Professional': 'our recent discussions and the planned deliverables',
@@ -147,75 +159,77 @@ function buildBody({ category, tone, detail }) {
 
   const topic = topicByCategory[category] || topicByCategory['Other']
 
-  // Opening paragraph: expert tone without echoing the raw goal
+  // Opening: short context/introduction
   const opening =
     tone === 'Apologetic'
-      ? `I hope you are well. I’d like to acknowledge the situation regarding ${topic} and offer a clear path forward.`
+      ? `I hope you are well. I’d like to acknowledge the situation regarding ${topic} and propose a clear path forward.`
       : tone === 'Assertive'
       ? `I hope you are well. I’m reaching out regarding ${topic} and would appreciate your prompt attention.`
       : `I hope you are well. I’m writing in connection with ${topic} and would appreciate your guidance.`
 
-  // Context paragraph — elaborated, professional wording
-  const contextBase =
-    category === 'Food / Delivery'
-      ? 'Recently, I experienced an issue affecting the expected delivery experience.'
-      : category === 'Banking / Finance'
-      ? 'I noticed an inconsistency that merits a closer review to ensure account accuracy.'
-      : category === 'Professional'
-      ? 'To ensure alignment and momentum, I wanted to summarize the current status and propose next steps.'
-      : 'I want to provide a concise overview and request the most suitable next steps.'
+  // Acknowledge recipient constraints/role
+  const acknowledgement = (() => {
+    if (category === 'Professional') return 'I recognize competing priorities and appreciate your partnership in keeping us aligned.'
+    if (category === 'Food / Delivery') return 'I understand your team handles high volumes daily and appreciate your attention to this.'
+    if (category === 'Banking / Finance') return 'I understand compliance and verification steps are important and appreciate your careful review.'
+    return 'I appreciate the time and attention this may require on your side.'
+  })()
 
-  const placeholders =
-    category === 'Food / Delivery'
-      ? 'Order ID: [XXXX-XXXX] • Placed on: [DD/MM/YYYY] • Restaurant: [Name] • Issue observed: [Brief description].'
-      : category === 'Banking / Finance'
-      ? 'Reference: [Transaction ID] • Date: [DD/MM/YYYY] • Amount: [$ / ₹] • Channel: [Card/UPI/NetBanking].'
-      : category === 'Professional'
-      ? 'Reference: [Project / Ticket] • Timeline: [Milestones & Dates] • Stakeholders: [Names].'
-      : 'Reference: [Case/Topic] • Date: [DD/MM/YYYY] • Notes: [Short context].'
+  // Context block — elaborated, professional wording
+  const contextBase = (() => {
+    if (category === 'Food / Delivery') return 'Recently, I experienced an issue that impacted the expected delivery experience.'
+    if (category === 'Banking / Finance') return 'I noticed an inconsistency that merits a closer review to ensure account accuracy.'
+    if (category === 'Professional') return 'To maintain momentum, I’d like to summarize the current status and outline recommended next steps.'
+    return 'Below is a concise overview along with the assistance I’m seeking.'
+  })()
 
-  const requestLine =
-    category === 'Food / Delivery'
-      ? 'Could you please review the details above and advise on an appropriate resolution? A replacement or refund would be appreciated as suitable.'
-      : category === 'Banking / Finance'
-      ? 'Could you please review this activity and confirm the findings, along with any steps required from my side?'
-      : category === 'Professional'
-      ? 'Could we confirm ownership, finalize the timeline, and proceed with the outlined actions?'
-      : 'Could you please advise on the best next steps to move this forward?'
+  // Supporting details placeholders
+  const placeholders = (() => {
+    if (category === 'Food / Delivery') return 'Order ID: [XXXX-XXXX] • Placed on: [DD/MM/YYYY] • Restaurant: [Name] • Issue observed: [Brief description].'
+    if (category === 'Banking / Finance') return 'Reference: [Transaction ID] • Date: [DD/MM/YYYY] • Amount: [$ / ₹] • Channel: [Card/UPI/NetBanking].'
+    if (category === 'Professional') return 'Reference: [Project / Ticket] • Timeline: [Milestones & Dates] • Stakeholders: [Names].'
+    return 'Reference: [Case/Topic] • Date: [DD/MM/YYYY] • Notes: [Short context].'
+  })()
 
-  const toneReinforcement =
-    tone === 'Apologetic'
-      ? 'I regret any inconvenience this may have caused and appreciate your understanding.'
-      : tone === 'Assertive'
-      ? 'Given the impact, a timely response would be greatly appreciated.'
-      : 'Thank you in advance for your support and guidance.'
+  // Main request — clear, actionable, assertive if needed
+  const requestLine = (() => {
+    if (category === 'Food / Delivery') return 'Could you please review the details below and advise on an appropriate resolution? A replacement or refund would be appreciated as suitable.'
+    if (category === 'Banking / Finance') return 'Could you please review this activity and share your findings, along with any steps required from my side?'
+    if (category === 'Professional') return 'Could we confirm ownership, finalize the timeline, and proceed with the outlined actions?'
+    return 'Could you please advise on the best next steps to move this forward?'
+  })()
 
-  // Detail shaping
+  const firmness = tone === 'Assertive' ? 'Given the impact, a timely response would be appreciated. Please confirm by [DD/MM/YYYY] if possible.' : ''
+
+  const closingPolite = tone === 'Apologetic' ? 'I regret any inconvenience this may have caused and appreciate your understanding.' : 'Thank you in advance for your support.'
+
+  // Detail shaping — short paragraphs, skimmable
   const detailBlocks = {
     Concise: [
       `${greeting}`,
       `${opening}`,
-      `${contextBase}`,
-      `${placeholders}`,
+      `${acknowledgement}`,
       `${requestLine}`,
-      `${toneReinforcement}`,
+      `${closingPolite} ${firmness}`.trim(),
     ],
     Standard: [
       `${greeting}`,
       `${opening}`,
-      `${contextBase} To help streamline the review, I’m sharing a few quick references below.`,
+      `${acknowledgement}`,
+      `${contextBase} To streamline the review, I’m sharing a few quick references below:`,
       `${placeholders}`,
       `${requestLine}`,
-      `${toneReinforcement}`,
+      `${closingPolite} ${firmness}`.trim(),
     ],
     Detailed: [
       `${greeting}`,
       `${opening}`,
+      `${acknowledgement}`,
       `${contextBase} For clarity, I’ve included a brief summary followed by key references:`,
       `Summary: [One or two sentences outlining the situation and desired outcome].`,
       `Key details — ${placeholders}`,
       `${requestLine} If additional documentation or verification is needed, I’ll be happy to provide it.`,
-      `${toneReinforcement}`,
+      `${closingPolite} ${firmness}`.trim(),
     ],
   }
 
